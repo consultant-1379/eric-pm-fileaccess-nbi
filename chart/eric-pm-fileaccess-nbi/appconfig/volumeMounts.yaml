@@ -1,0 +1,16 @@
+- name: gp
+  mountPath: /gp
+- name: data
+  mountPath: /ericsson/tor/data
+- name: pm1
+  mountPath: "/var/www/html/file/v1/files/ericsson/pmic1"
+- name: pm2
+  mountPath: "/var/www/html/file/v1/files/ericsson/pmic2"
+- name: pmul
+  mountPath: "/var/www/html/file/v1/files/ericsson/ul_spectrum_files"
+- name: httpd-tls-secret-1
+  mountPath: {{ .Values.service.tlsMountPath }}/tlshttpd1
+- name: httpd-tls-secret-2
+  mountPath: {{ .Values.service.tlsMountPath }}/tlshttpd2
+- name: hcdumps
+  mountPath: /ericsson/enm/dumps

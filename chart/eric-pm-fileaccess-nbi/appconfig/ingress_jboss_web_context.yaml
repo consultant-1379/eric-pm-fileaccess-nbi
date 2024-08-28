@@ -1,0 +1,7 @@
+- backend:
+    service:
+      name: fileaccessnbi
+      port:
+        number: 443
+  path: /file/v1/files/ericsson
+  pathType: ImplementationSpecific

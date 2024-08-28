@@ -1,0 +1,2 @@
+- containerPort: 8444
+- containerPort: 9600

@@ -1,0 +1,4 @@
+documents:
+  - name: vulnerability_report
+    files:
+      - ../build/fan_Vulnerability_Report_2.0.md

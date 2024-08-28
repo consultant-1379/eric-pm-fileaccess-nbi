@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configEntity xmlns="http://www.ericsson.com/oss/itpf/deployment/dst/descriptor">
+    <description>File Access NBI</description>
+    <singleton>true</singleton>
+    <scaleUnit>
+        <loadDrivers>
+            <loadDriver name="enm_deployment_type" description="ENM Reference Deployment - Extra_Large_ENM,Extra_Large_CloudNative_ENM,Extra_Large_ENM_On_Rack_Servers,Large_ENM,Large_Transport_only_ENM,Medium_ENM,Small_ENM_customer_cloud,SIENM_multi_technology,SIENM_transport_only,OSIENM_transport_only,Small_CloudNative_ENM,ENM_extra_small" />
+            <loadDriver name="volumeOfStatsFlexibleRop15MinuteDataStoredMB" description="Calculated volume of statistics data stored for flexible(15 min) ROPs" />
+            <loadDriver name="nasPmPushFileSystemSpaceMB" description="Dependency calculation of volume of data that is pushed into pm1/pm2 by smrs " />
+            <loadDriver name="volumeOfStatsEniqTopologyDataStoredMB" description="ENIQ integration calculated volume of topology data to be transferred daily"/>
+            <loadDriver name="volumeOfStats15MinuteDataStoredMB" description="Calculated volume of statistics data stored every 15 minute ROP" />
+            <loadDriver name="volumeOf15MinuteEbsmStatsDataStoredMB" description="EBSM calculated volume of data statistical data in every 15 minute ROP"/>
+            <loadDriver name="fanCpuUsage" description="Total FAN CPU usage for 24 hours for 5 clients for cENM small and XL only, otherwise will be 0"/>
+            <loadDriver name="fan24HourCpuRequirement" description="Total FAN CPU usage for 24 hours for 5 clients"/>
+            <loadDriver name="fanCpuRequirementForOneClientTopologyPlus3statsRops" description="Total FAN CPU requirement for one client for all topology data and 3 statistical data ROPs"/>
+            <loadDriver name="fanCpuRequirementForOneClient92statsRops" description="Total FAN CPU requirement for one client for 92 statistical data ROPs"/>
+            <loadDriver name="fanCpuRequirementForStatsRecovery" description="Total FAN CPU requirement for one client for recovery of 24 statistical ROPs"/>
+            <loadDriver name="volumeOf15MinuteStatsDataStoredMB" description="Total volume of statistical data to be downloaded"/>
+            <loadDriver name="mspmVolumeOf15MinuteStatsDataStoredMB" description="Total volume of statistical data produced by MSPM excluding volumeOfStatsFlexibleRop15MinuteDataStoredMB"/>
+            <loadDriver name="mspmipVolumeOf15MinuteStatsDataStoredMB" description="Total volume of statistical data produced by MSPMIP"/>
+        </loadDrivers>
+        <minimumUnit>
+            <!--minimumUnit.cpuCores : number of vcpu allocated to the POD in cloud deployment-->
+            <!--minimumUnit.cpuMinutes : value for cpu minutes per day required under no load -->
+            <!--minimumUnit.peakCpuMinutes : value for cpu minutes in busy hour required under no load -->
+            <!--minimumUnit.memory : value for memory required under no load-->
+            <!--minimumUnit.profileConversionFormulae : this section is not required to be filled in at present-->
+            <profile>
+                <cpuCores>1</cpuCores>
+                <cpuMinutes>49</cpuMinutes>
+                <peakCpuMinutes></peakCpuMinutes>
+                <memory>1024</memory>
+            </profile>
+            <profileConversionFormulae>
+                <cpuCores>0</cpuCores>
+                <cpuMinutes>49</cpuMinutes>
+                <peakCpuMinutes>0</peakCpuMinutes>
+                <memory>0</memory>
+            </profileConversionFormulae>
+        </minimumUnit>
+        <optimalUnit>
+            <!--optimalUnit.profile.cpuCores : number of vcpu allocated to the POD-->
+            <!--optimalUnit.profile.cpuMinutes : after testing this is the cpu minutes per day used under sustainable load-->
+            <!--optimalUnit.profile.peakCpuMinutes : after testing this is the cpu minutes in a busy hour used under sustainable load-->
+            <!--optimalUnit.profile.memory : during initial introduction this is the RAM allocated to the VM when it is introduced into the deployment. after testing it is the maximum memory used under sustainable load-->
+            <!--optimalUnit.profile.cpuCores : No input required-->
+            <!--optimalUnit.profileConversionFormulae.cpuMinutes : using load drivers and parameters identify how the no load cpu minutes (minimumUnit.cpuMinutes) are affected by the load applied to the vm up to the optimalUnit.cpuMinutes value.-->
+            <!--optimalUnit.profileConversionFormulae.peakCpuMinutes : using load drivers and parameters identify how the no load peak cpu minutes (minimumUnit.peakCpuMinutes) are affected by the load applied to the vm up to the optimalUnit.peakCpuMinutes value.-->
+            <!--optimalUnit.profileConversionFormulae.memory : using load drivers and parameters identify how the no load memory minimumUnit.memory is increased by the laod applied to the vm up to the optimalUnit.memory value-->
+            <profile>
+                <cpuCores>5</cpuCores>
+                <cpuMinutes>5556</cpuMinutes>
+                <peakCpuMinutes></peakCpuMinutes>
+                <memory>2048</memory>
+            </profile>
+            <profileConversionFormulae>
+                <cpuCores>0</cpuCores>
+                <cpuMinutes>fanCpuUsage</cpuMinutes>
+                <peakCpuMinutes>0</peakCpuMinutes>
+                <memory>0</memory>
+            </profileConversionFormulae>
+        </optimalUnit>
+    </scaleUnit>
+    <parameters>
+        <property name="numberOfClients" defaultValue="5" description="Number NB clients supported by FAN. (Currently it is only ENIQ)" usage="OPTIONAL" />
+        <property name="statsCpuPerMbDownload" defaultValue="0.0027" description="CPU required per MB to download one ROP of stats data." usage="OPTIONAL" />
+        <property name="topologyPlusThreeStatsRopCpuPerMbDownload" defaultValue="0.0003" description="CPU required per MB to download all topology date and 3 stats ROPs." usage="OPTIONAL" />
+        <property name="sixHourRecoveryCpuPerMbDownload" defaultValue="0.00058" description="CPU required per MB to download all recovery data for 6 hours plus current stats ROP data." usage="OPTIONAL" />
+    </parameters>
+    <deploymentDependencies>
+        <deploymentDependency>
+            <groupId>com.ericsson.oss.containerisation</groupId>
+            <artifactId>eric-pm-fileaccess-nbi</artifactId>
+            <version></version>
+            <alias>fan-cpuUsage</alias>
+            <qualifier>GLOBAL</qualifier>
+            <loadDriverConverters>
+                <loadConversionFormula dependencyLoadDriver="fanCpuUsage">
+                    IF (OR(enm_deployment_type="Extra_Large_CloudNative_ENM", enm_deployment_type="Small_CloudNative_ENM"), fan24HourCpuRequirement,0)
+                </loadConversionFormula>
+            </loadDriverConverters>
+        </deploymentDependency>
+        <deploymentDependency>
+            <groupId>com.ericsson.oss.containerisation</groupId>
+            <artifactId>eric-pm-fileaccess-nbi</artifactId>
+            <version/>
+            <alias>fanStatsDownloadRequirementMb</alias>
+            <qualifier>GLOBAL</qualifier>
+            <loadDriverConverters>
+                <loadConversionFormula dependencyLoadDriver="volumeOf15MinuteStatsDataStoredMB">
+                    mspmVolumeOf15MinuteStatsDataStoredMB + mspmipVolumeOf15MinuteStatsDataStoredMB + volumeOf15MinuteEbsmStatsDataStoredMB
+                </loadConversionFormula>
+                <loadConversionFormula dependencyLoadDriver="mspmVolumeOf15MinuteStatsDataStoredMB">
+                    <!-- volumeOfStatsFlexibleRop15MinuteDataStoredMB there is an issue with the calculation of this load driver as it was getting 3.5Gb for XL whn it should be much smaller in the order of Mb not Gb - should be added back later once calculation is resolved.-->
+                    volumeOfStats15MinuteDataStoredMB
+                </loadConversionFormula>
+                <loadConversionFormula dependencyLoadDriver="mspmipVolumeOf15MinuteStatsDataStoredMB">
+                    nasPmPushFileSystemSpaceMB
+                </loadConversionFormula>
+                <loadConversionFormula dependencyLoadDriver="fan24HourCpuRequirement">
+                    numberOfClients*(fanCpuRequirementForOneClientTopologyPlus3statsRops + fanCpuRequirementForOneClient92statsRops + fanCpuRequirementForStatsRecovery)
+                </loadConversionFormula>
+                <loadConversionFormula dependencyLoadDriver="fanCpuRequirementForOneClientTopologyPlus3statsRops">
+                    (volumeOfStatsEniqTopologyDataStoredMB + 3*volumeOf15MinuteStatsDataStoredMB)*topologyPlusThreeStatsRopCpuPerMbDownload
+                </loadConversionFormula>
+                <loadConversionFormula dependencyLoadDriver="fanCpuRequirementForOneClient92statsRops">
+                    <!-- Only 92 as 3 are include in fanCpuRequirementForOneClientTopologyPlus3statsRops and one is included in fanCpuRequirementForStatsRecovery-->
+                    92 * volumeOf15MinuteStatsDataStoredMB * statsCpuPerMbDownload
+                </loadConversionFormula>
+                <loadConversionFormula dependencyLoadDriver="fanCpuRequirementForStatsRecovery">
+                    6 * 4 * volumeOf15MinuteStatsDataStoredMB * sixHourRecoveryCpuPerMbDownload
+                </loadConversionFormula>
+            </loadDriverConverters>
+        </deploymentDependency>
+    </deploymentDependencies>
+</configEntity>

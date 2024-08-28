@@ -1,0 +1,188 @@
+global:
+  pullSecret:
+  registry:
+    url: armdocker.rnd.ericsson.se
+  ingress:
+    enmHost:
+  timezone:
+productNumber: "CXC Placeholder"
+productRevision: RSTATE
+labels: {}
+securityPolicy:
+  rolename: fileaccessnbi
+# Number of replicas(pods) to deploy
+replicas-eric-pm-fileaccess-nbi: 2
+images:
+  eric-pm-fileaccess-nbi:
+    name: eric-pm-fileaccess-nbi
+    tag: VERSION
+  waitInitContainer:
+    enabled: true
+    name: eric-enm-init-container
+    tag: 1.64.0-32
+    command: "[ '/bin/sh', '-c', 'bash /var/tmp/check_service.sh -s gossiprouter-cache,gossiprouter-eap7'
+      ]"
+  waitForCertificatesContainer:
+    enabled: true
+    name: enm-wait-for-certificates-container
+    tag: 1.52.0-33
+    command:
+imageCredentials:
+  repoPath: proj-enm
+  pullPolicy: Always
+  pullSecret:
+  registry:
+    url:
+eric-enm-common-helmchart-library:
+  enabled: true
+## Enable pre-shutdown hook
+lifecycle:
+  handler:
+    enabled: true
+## Configure the service
+service:
+  name: fileaccessnbi
+  sgname: fileaccessnbi
+  labels:
+  xmlMountPath: "/ericsson/credm/certReqMount"
+  tlsMountPath: "/ericsson/credm/tlsMount"
+ingress:
+  name: fileaccessnbi
+  enabled: true
+ingress_jboss_web_context:
+  enabled: true
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+## Configure resource requests and limits
+resources:
+  requests:
+    enabled: true
+    memory: 700Mi
+    cpu: 500m
+    ephemeral-storage: 200Mi
+  limits:
+    enabled: true
+    memory: 1500Mi
+    cpu: 1000m
+    ephemeral-storage: 400Mi
+probes:
+  container:
+    startupProbe:
+      enabled: true
+      command: /ericsson/enm_healthcheck/bin/enm_healthcheck.py
+      arguments: --exec_agents
+      initialDelaySeconds: 10
+      timeoutSeconds: 30
+      periodSeconds: 30
+      failureThreshold: 20
+    livenessProbe:
+      enabled: true
+      command: /ericsson/enm_healthcheck/bin/enm_healthcheck.py
+      arguments: --exec_agents
+      initialDelaySeconds: 30
+      timeoutSeconds: 30
+      periodSeconds: 30
+      failureThreshold: 2
+    readinessProbe:
+      enabled: true
+      command: /ericsson/enm_healthcheck/bin/enm_healthcheck.py
+      arguments: --exec_agents
+      initialDelaySeconds: 10
+      periodSeconds: 30
+      timeoutSeconds: 30
+      failureThreshold: 2
+startupProbe:
+  enabled: true
+  command: /ericsson/enm_healthcheck/bin/enm_healthcheck.py
+  arguments: --exec_agents
+  initialDelaySeconds: 10
+  timeoutSeconds: 30
+  periodSeconds: 30
+  failureThreshold: 20
+# LivenessProbe Health Check configuration.
+livenessProbe:
+  enabled: true
+  command: /ericsson/enm_healthcheck/bin/enm_healthcheck.py
+  arguments: --exec_agents
+  initialDelaySeconds: 30
+  timeoutSeconds: 30
+  periodSeconds: 30
+  failureThreshold: 2
+# ReadinessProbe Health Check configuration.
+readinessProbe:
+  enabled: true
+  command: /ericsson/enm_healthcheck/bin/enm_healthcheck.py
+  arguments: --exec_agents
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 30
+  failureThreshold: 2
+# Extra Annotations to be added to pod
+podAnnotations: {}
+## Tolerations for pod assignment
+tolerations: []
+## Affinity for pod assignment
+affinity: requiredDuringSchedulingIgnoredDuringExecution
+# Constrain which nodes your pod is eligible to be scheduled on
+nodeAffinity: {}
+priorityClassName: ""
+## Node selector
+nodeSelector: {}
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+    maxSurge: 0
+## Pod Disruption Budget is an indicator of the number of disruptions that can be tolerated at a given time.
+podDisruptionBudget:
+  maxUnavailable: 1
+credmController:
+  name: eric-enm-credm-controller
+  port: 5001
+jobs:
+  jobAction: certrequest
+  certRequest:
+    imageName: enm-certrequestjob-container
+    pullPolicy: Always
+    tag: 1.52.0-33
+    resources:
+      requests:
+        enabled: true
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        enabled: true
+        cpu: 1000m
+        memory: 512Mi
+securityContext:
+  supplementalGroups:
+  - 206
+  - 0
+  fileaccessnbi:
+    allowPrivilegeEscalation: false
+    privileged: false
+    readOnlyRootFilesystem: false
+    runAsNonRoot: true
+    capabilities:
+      drop:
+      - ALL
+  waitInitContainer:
+    allowPrivilegeEscalation: true
+    privileged: false
+    readOnlyRootFilesystem: false
+    runAsNonRoot: false
+    capabilities:
+      drop:
+      - ALL
+  waitForCertificatesContainer:
+    allowPrivilegeEscalation: false
+    privileged: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    capabilities:
+      drop:
+      - ALL
+spec:
+  portHTTP: 8084
+  portHTTPS: 8444
+  portSSO: 10081
